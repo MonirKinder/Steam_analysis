@@ -1,6 +1,15 @@
 import requests 
 import csv
 import time
+from datetime import datetime
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] %(message)s",
+    datefmt="%H:%M:%S"
+)
+log = logging.getLogger(__name__)
 
 url = "https://steamspy.com/api.php"
 all_games=[]
@@ -15,7 +24,7 @@ for page in range (0,3):
         response.raise_for_status()  #declenche une exception pour les codes d'erreur HTTP
         data = response.json()  #convertit json en dictionnaire 
     except requests.RequestException as e:
-        print(f"Error fetching data: {e}")
+        log.error(f"Erreur page {page} : {e}")
         break
 
 
@@ -27,17 +36,19 @@ for page in range (0,3):
 
     games = list(data.values())
     all_games.extend(games)
-    print(f"  → {len(games)} jeux récupérés (total : {len(all_games)})")
+    log.info(f"→ {len(games)} jeux récupérés (total : {len(all_games)})")
     
-    print("Pause 60 secondes...")
-    time.sleep(60)
+    if page < 2:  #pas de pause après la dernière page
+        log.info("Pause 60 secondes...")
+        time.sleep(60)
 
-   
-file = open("data/raw/steamspy_3pages.csv", "w", newline="", encoding="utf-8") 
+
+timestamp = datetime.now().strftime("%Y%m%d_%H%M") 
+file = open(f"data/raw/steamspy_{timestamp}.csv", "w", newline="", encoding="utf-8") 
 
 writer = csv.DictWriter(file, fieldnames=games[0].keys())
 writer.writeheader()
 writer.writerows(all_games)
 file.close();
 
-print(f"{len(all_games)} jeux sauvegardés")
+log.info(f"{len(all_games)} jeux sauvegardés")
