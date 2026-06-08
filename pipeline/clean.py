@@ -50,3 +50,9 @@ df["review_ratio"] = (
 
 print(df["review_ratio"])
 print(df["review_ratio"].head(10))
+
+
+#clean dulpluicates no name---------------------------------------------
+df = df.drop_duplicates(subset="appid", keep="first")
+df = df[df["name"].notna()]
+df = df[~((df["owners_lower"] == 0) & (df["positive"] == 0))]
